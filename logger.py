@@ -17,7 +17,7 @@ options = {
     "service_name": settings['service_name'],
     "service_environment": settings['environment'],
     "display_hostname": True,
-    "default_level": "debug",
+    "default_level": "info",
 }
 
 def watch(filename, queue):
