@@ -1,0 +1,10 @@
+{
+    "hostname": "TestServer",
+    "service_name": "TestService",
+    "environment": "Production",
+    "web_url": "",
+    "log_files": [
+        "/tmp/file1",
+        "/tmp/file2"
+    ]
+}
