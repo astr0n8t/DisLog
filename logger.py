@@ -58,8 +58,6 @@ def main():
                 output += log_queues[file].get()
             output += '\n'
 
-        print(output)
-
         sendReport(output)
 
 if __name__ == '__main__':
