@@ -20,38 +20,50 @@ options = {
     "default_level": "debug",
 }
 
-log_files = settings['log_files']
-
-def watch(syslog_file):
-    syslog_file.seek(0,2) # Go to the end of the file
+def watch(filename, queue):
+    log_file = open(filename, 'r')
+    log_file.seek(0,2) # Go to the end of the file
     while True:
-        line = syslog_file.readline()
-        if not line:
+        line = log_file.readline()
+        if line:
+            queue.put(line)
+        else:
             time.sleep(0.1) # Sleep briefly
-            continue
-        yield line
 
-def logFile(filename):
-    with open(filename, 'r') as log_file:
-        log_file_output = watch(log_file)
+def sendReport(report):
+    logger = DiscordLogger(webhook_url=settings['web_url'], **options)
+    logger.construct(title=str("Last " + str(settings['interval']) + " Seconds of Logs"), description=report)
 
-        for output in log_file_output:
+    response = logger.send()
 
-            logger = DiscordLogger(webhook_url=settings['web_url'], **options)
-            logger.construct(title=filename, description=output)
+def main():
+    
+    multiprocessing.freeze_support()
+    log_files = settings['log_files']
+    log_processes = {}
+    log_queues = {}
+    for file in log_files:
+        log_queues[file] = multiprocessing.Queue()
+        log_processes[file] = multiprocessing.Process(target = watch, args=(file, log_queues[file]))
+        log_processes[file].start()
 
-            response = logger.send()
+    while True:
+        time.sleep(settings['interval'])
 
-def startLog(filename):
-    log_process = multiprocessing.Process(target = logFile, args=([filename]))
-    log_process.start()
-    return log_process
+        output = ""
+        for file in log_files:
+            output += str("**" + file + "**\n\n")
+            num_in_queue = log_queues[file].qsize()
+            for x in range(num_in_queue):
+                output += log_queues[file].get()
+            output += '\n'
+
+        print(output)
+
+        sendReport(output)
 
 if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    log_processes = {}
-    for file in log_files:
-        log_processes[file] = startLog(file)
+    main()
 
 
 

@@ -2,6 +2,7 @@
     "hostname": "TestServer",
     "service_name": "TestService",
     "environment": "Production",
+    "interval": 30,
     "web_url": "",
     "log_files": [
         "/tmp/file1",
